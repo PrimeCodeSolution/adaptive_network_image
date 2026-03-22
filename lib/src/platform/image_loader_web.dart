@@ -24,6 +24,7 @@ class PlatformImageLoader {
     bool enableCache = true,
     List<ImageLoadStrategy>? strategies,
     ImageLoadCallback? onStrategyResolved,
+    bool preventNativeInteraction = true,
   }) async {
     final uri = Uri.tryParse(url);
     if (uri == null ||
@@ -70,6 +71,7 @@ class PlatformImageLoader {
           fit: fit,
           headers: headers,
           corsProxyUrl: corsProxyUrl,
+          preventNativeInteraction: preventNativeInteraction,
         );
         if (result is StrategySuccess) {
           onStrategyResolved?.call(cachedStrategy);
@@ -94,6 +96,7 @@ class PlatformImageLoader {
         fit: fit,
         headers: headers,
         corsProxyUrl: corsProxyUrl,
+        preventNativeInteraction: preventNativeInteraction,
       );
 
       if (result is StrategySuccess) {

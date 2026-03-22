@@ -14,6 +14,7 @@ class _TestStrategy extends LoadStrategy {
     required BoxFit fit,
     Map<String, String>? headers,
     String? corsProxyUrl,
+    bool preventNativeInteraction = true,
   }) async {
     return StrategyFailure('not implemented');
   }

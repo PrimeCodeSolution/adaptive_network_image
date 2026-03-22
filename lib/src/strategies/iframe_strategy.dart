@@ -33,6 +33,7 @@ class IframeStrategy extends LoadStrategy {
     required BoxFit fit,
     Map<String, String>? headers,
     String? corsProxyUrl,
+    bool preventNativeInteraction = true,
   }) async {
     final completer = Completer<StrategyResult>();
     final viewId = _iframeViewIdCounter++;
@@ -48,10 +49,10 @@ class IframeStrategy extends LoadStrategy {
 <head><style>
   * { margin: 0; padding: 0; }
   body { width: 100%; height: 100%; overflow: hidden; }
-  img { width: 100%; height: 100%; object-fit: $cssFit; display: block; }
+  img { width: 100%; height: 100%; object-fit: $cssFit; display: block;${preventNativeInteraction ? ' pointer-events: none; user-select: none;' : ''} }
 </style></head>
 <body>
-  <img src="$url" />
+  <img src="$url"${preventNativeInteraction ? ' draggable="false"' : ''} />
 </body>
 </html>''';
 
@@ -62,6 +63,10 @@ class IframeStrategy extends LoadStrategy {
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.border = 'none';
+    if (preventNativeInteraction) {
+      iframe.style.pointerEvents = 'none';
+      iframe.style.setProperty('user-select', 'none');
+    }
     // Only allow-same-origin — no scripts allowed.
     iframe.sandbox.add('allow-same-origin');
 

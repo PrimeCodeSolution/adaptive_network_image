@@ -1,6 +1,6 @@
 # adaptive_network_image
 
-A Flutter widget that displays images from external URLs on the web, handling CORS restrictions with a multi-strategy fallback approach. On mobile and desktop, it falls back to `Image.network`.
+A Flutter package built primarily for **web**, solving CORS restrictions when loading external images. It uses a multi-strategy fallback approach that works across all browsers. On non-web platforms (Android, iOS, macOS, Windows, Linux), it uses Flutter's default `Image.network` -- no extra setup needed.
 
 ## How It Works
 
@@ -48,6 +48,7 @@ AdaptiveNetworkImage(
 | `enableCache` | `bool` | `true` | Whether to cache strategy resolution and image bytes. |
 | `strategies` | `List<ImageLoadStrategy>?` | `null` | Ordered list of strategies to attempt. Defaults to all three. |
 | `onStrategyResolved` | `ImageLoadCallback?` | `null` | Callback invoked when a strategy successfully loads the image. |
+| `preventNativeInteraction` | `bool` | `true` | Prevents native browser interactions (drag, right-click) on web HTML elements. |
 
 ## Strategy Trade-offs
 
@@ -71,9 +72,11 @@ AdaptiveNetworkImage(
 
 | Platform | Behavior |
 |---|---|
-| **Web** | Multi-strategy CORS handling (directImg, corsProxy, iframe). |
-| **Android / iOS** | Falls back to `Image.network`. |
-| **macOS / Windows / Linux** | Falls back to `Image.network`. |
+| **Web (all browsers)** | Multi-strategy CORS handling (directImg, corsProxy, iframe). |
+| **Android / iOS** | Uses Flutter's default `Image.network`. |
+| **macOS / Windows / Linux** | Uses Flutter's default `Image.network`. |
+
+You can use `AdaptiveNetworkImage` as a drop-in replacement for `Image.network` across all platforms. On web it handles CORS automatically; everywhere else it delegates to Flutter's built-in image loading.
 
 ## Cache
 

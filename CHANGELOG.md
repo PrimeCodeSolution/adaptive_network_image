@@ -1,3 +1,8 @@
+## 0.1.1
+
+- Add `preventNativeInteraction` parameter (default `true`) to block native browser drag and right-click on web images, allowing Flutter's gesture system to handle all interactions.
+- Improve README to clarify the package is built primarily for web with all-browser support, and uses Flutter's default `Image.network` on other platforms.
+
 ## 0.1.0
 
 - Multi-strategy CORS image loading with ordered fallback: `directImg`, `corsProxy`, `iframe`.

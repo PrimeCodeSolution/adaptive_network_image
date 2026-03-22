@@ -23,6 +23,7 @@ class CorsProxyStrategy extends LoadStrategy {
     required BoxFit fit,
     Map<String, String>? headers,
     String? corsProxyUrl,
+    bool preventNativeInteraction = true,
   }) async {
     if (corsProxyUrl == null) {
       adaptiveImageLog('[CorsProxyStrategy] No proxy URL configured — skipping.');

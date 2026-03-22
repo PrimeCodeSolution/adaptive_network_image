@@ -36,6 +36,7 @@ abstract class LoadStrategy {
     required BoxFit fit,
     Map<String, String>? headers,
     String? corsProxyUrl,
+    bool preventNativeInteraction = true,
   });
 
   /// Dispose any resources held by this strategy.

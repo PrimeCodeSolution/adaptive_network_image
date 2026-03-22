@@ -34,6 +34,7 @@ class DirectImgStrategy extends LoadStrategy {
     required BoxFit fit,
     Map<String, String>? headers,
     String? corsProxyUrl,
+    bool preventNativeInteraction = true,
   }) async {
     final completer = Completer<StrategyResult>();
     final viewId = _viewIdCounter++;
@@ -49,6 +50,11 @@ class DirectImgStrategy extends LoadStrategy {
     img.style.height = '100%';
     img.style.objectFit = boxFitToCss(fit);
     img.style.display = 'block';
+    if (preventNativeInteraction) {
+      img.style.pointerEvents = 'none';
+      img.style.setProperty('user-select', 'none');
+      img.draggable = false;
+    }
 
     void onLoad(web.Event _) {
       adaptiveImageLog('[DirectImgStrategy] Image loaded successfully: $url');

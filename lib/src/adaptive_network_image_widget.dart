@@ -55,6 +55,10 @@ class AdaptiveNetworkImage extends StatefulWidget {
   /// Callback invoked when a strategy successfully resolves.
   final ImageLoadCallback? onStrategyResolved;
 
+  /// Whether to prevent native browser interactions (drag, right-click) on web.
+  /// Defaults to `true`.
+  final bool preventNativeInteraction;
+
   /// Clears the image strategy and bytes cache.
   static void clearCache() => ImageCacheManager.instance.clear();
 
@@ -75,6 +79,7 @@ class AdaptiveNetworkImage extends StatefulWidget {
     this.enableCache = true,
     this.strategies,
     this.onStrategyResolved,
+    this.preventNativeInteraction = true,
   });
 
   @override
@@ -117,6 +122,7 @@ class _AdaptiveNetworkImageState extends State<AdaptiveNetworkImage> {
       corsProxyUrl: widget.corsProxyUrl,
       enableCache: widget.enableCache,
       strategies: widget.strategies,
+      preventNativeInteraction: widget.preventNativeInteraction,
       onStrategyResolved: (strategy) {
         if (gen == _generation && !_disposed) {
           widget.onStrategyResolved?.call(strategy);

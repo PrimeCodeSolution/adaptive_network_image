@@ -13,6 +13,7 @@ class PlatformImageLoader {
     bool enableCache = true,
     List<ImageLoadStrategy>? strategies,
     ImageLoadCallback? onStrategyResolved,
+    bool preventNativeInteraction = true,
   }) {
     throw UnimplementedError(
       'PlatformImageLoader is not implemented on this platform.',
