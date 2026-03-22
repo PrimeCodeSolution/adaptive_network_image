@@ -129,7 +129,7 @@ class PlatformImageLoader {
     BoxFit fit,
   ) {
     if (result.widget != null) {
-      return result.widget!;
+      return SizedBox.expand(child: result.widget!);
     }
     if (result.imageBytes != null) {
       return Image.memory(

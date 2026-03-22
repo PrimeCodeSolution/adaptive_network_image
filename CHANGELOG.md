@@ -1,3 +1,8 @@
+## 0.1.2
+
+- Fix images losing aspect ratio with directImg and iframe strategies when using fixed dimensions.
+- Improve example app with BoxFit toggle and colored container borders for visual testing.
+
 ## 0.1.1
 
 - Add `preventNativeInteraction` parameter (default `true`) to block native browser drag and right-click on web images, allowing Flutter's gesture system to handle all interactions.
