@@ -55,8 +55,8 @@ class ImageCacheManager {
     _totalBytes += bytes.length;
 
     // Evict oldest entries while over entry count or byte limit.
-    while (_bytesCache.length > _maxBytesEntries ||
-        _totalBytes > maxCacheBytes) {
+    while (
+        _bytesCache.length > _maxBytesEntries || _totalBytes > maxCacheBytes) {
       if (_bytesCache.isEmpty) break;
       final evictedKey = _bytesCache.keys.first;
       final evicted = _bytesCache.remove(evictedKey)!;
