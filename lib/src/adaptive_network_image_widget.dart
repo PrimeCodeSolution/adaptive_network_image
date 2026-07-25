@@ -117,8 +117,7 @@ class _AdaptiveNetworkImageState extends State<AdaptiveNetworkImage> {
         oldWidget.corsProxyUrl != widget.corsProxyUrl ||
         oldWidget.fit != widget.fit ||
         oldWidget.enableCache != widget.enableCache ||
-        oldWidget.preventNativeInteraction !=
-            widget.preventNativeInteraction ||
+        oldWidget.preventNativeInteraction != widget.preventNativeInteraction ||
         oldWidget.loadTimeout != widget.loadTimeout ||
         !listEquals(oldWidget.strategies, widget.strategies) ||
         !mapEquals(oldWidget.headers, widget.headers)) {
