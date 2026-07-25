@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
+import 'adaptive_network_image_config.dart';
 import 'cache/image_cache_manager.dart';
 import 'platform/image_loader.dart';
-import 'adaptive_network_image_config.dart';
 
 /// A widget that displays an image from an external URL, handling CORS
 /// restrictions on Flutter Web via a multi-strategy fallback approach.
