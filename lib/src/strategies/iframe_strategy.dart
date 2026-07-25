@@ -1,12 +1,12 @@
 import 'dart:async';
+import 'dart:js_interop';
+import 'dart:ui_web' as ui_web;
 
 import 'package:flutter/widgets.dart';
 import 'package:web/web.dart' as web;
-import 'dart:ui_web' as ui_web;
-import 'dart:js_interop';
 
-import '../css_utils.dart';
 import '../adaptive_network_image_config.dart';
+import '../css_utils.dart';
 import 'load_strategy.dart';
 
 /// Counter for generating unique view type IDs.
@@ -59,7 +59,7 @@ class IframeStrategy extends LoadStrategy {
     final iframe =
         web.document.createElement('iframe') as web.HTMLIFrameElement;
     _iframe = iframe;
-    iframe.srcdoc = srcdoc.toJS;
+    iframe.srcdoc = srcdoc;
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.border = 'none';

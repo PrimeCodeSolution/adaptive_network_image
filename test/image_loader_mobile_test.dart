@@ -1,5 +1,5 @@
-import 'package:flutter/widgets.dart';
 import 'package:adaptive_network_image/src/platform/image_loader_mobile.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

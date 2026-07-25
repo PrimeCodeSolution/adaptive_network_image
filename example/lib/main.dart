@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:adaptive_network_image/adaptive_network_image.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
