@@ -6,7 +6,8 @@ import 'package:http/http.dart' as http;
 import '../adaptive_network_image_config.dart';
 import 'load_strategy.dart';
 
-/// Strategy 2: Fetch image bytes through a CORS proxy, then display via Image.memory.
+/// Strategy 2: Fetch image bytes through a CORS proxy, then display via
+/// Image.memory.
 ///
 /// Skipped if no corsProxyUrl is provided. Produces Image.memory — no platform
 /// view overhead, best for image lists.

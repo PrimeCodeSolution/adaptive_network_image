@@ -42,7 +42,8 @@ class ImageCacheManager {
     return bytes;
   }
 
-  /// Cache image bytes for [url]. Evicts oldest entries if over entry or byte limit.
+  /// Cache image bytes for [url]. Evicts oldest entries if over entry or byte
+  /// limit.
   void putBytes(String url, Uint8List bytes) {
     // Remove existing entry first to refresh position and adjust total.
     final existing = _bytesCache.remove(url);
