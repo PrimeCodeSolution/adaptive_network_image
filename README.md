@@ -105,9 +105,21 @@ MIT -- see [LICENSE](LICENSE) for details.
 ## Releasing (maintainers)
 
 1. Update the version in the root `pubspec.yaml` and document user-visible changes in
-   `CHANGELOG.md`. Merge those changes before tagging.
-2. Create and push an immutable tag named exactly `v<pubspec-version>` (for example,
-   `v0.1.2`). The release workflow rejects a tag/version mismatch, a tag that does not
+   `CHANGELOG.md` in a release pull request. Review and merge that pull request before
+   tagging. The version committed to `pubspec.yaml` is the release candidate that will
+   be confirmed; the publication workflow never invents or modifies a version.
+2. From the updated default branch, create and push an annotated, immutable tag named
+   exactly `v<pubspec-version>` (for example, `v0.1.3`):
+
+   ```sh
+   git switch main
+   git pull --ff-only
+   git tag -a v0.1.3 -m "Release 0.1.3"
+   git push origin v0.1.3
+   ```
+
+   Pushing the tag is the production release trigger. The workflow rejects a tag/version
+   mismatch, a tag that does not
    resolve to the checked-out commit, and a version already present on pub.dev. Manual
    workflow runs are validation-only dry runs and cannot select or publish a version.
 3. In the pub.dev administration page for `adaptive_network_image`, configure a GitHub
@@ -115,8 +127,12 @@ MIT -- see [LICENSE](LICENSE) for details.
    `adaptive_network_image`, workflow `release.yml`, and environment `pub.dev`. Do not
    create a `PUB_CREDENTIALS` secret. In GitHub, create the protected `pub.dev`
    environment and configure required maintainer reviewers before allowing deployment.
-4. Approve the protected environment after the validation job passes. Publication uses
-   GitHub OIDC, and the GitHub Release is created only after pub.dev accepts the package.
+4. In the workflow run, review the **Release candidate** summary containing the package
+   version, tag, and commit. The publish job is named with that tag and waits at the
+   protected `pub.dev` environment. A required reviewer confirms the candidate by
+   approving that environment deployment. Rejecting it leaves the tag unpublished.
+   Publication uses GitHub OIDC, and the GitHub Release is created only after pub.dev
+   accepts the package.
 
 If validation or publication fails, fix the underlying issue and cut a new patch version
 and tag; do not move or reuse the failed tag. A failed publication does not create a
