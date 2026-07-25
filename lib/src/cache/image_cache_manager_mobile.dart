@@ -7,9 +7,10 @@ class ImageCacheManager {
   static final ImageCacheManager instance = ImageCacheManager._();
   ImageCacheManager._();
 
-  ImageLoadStrategy? getStrategy(String url) => null;
-  void putStrategy(String url, ImageLoadStrategy strategy) {}
-  Uint8List? getBytes(String url) => null;
-  void putBytes(String url, Uint8List bytes) {}
+  ImageLoadStrategy? getStrategy(String key) => null;
+  void putStrategy(String key, ImageLoadStrategy strategy) {}
+  void removeStrategy(String key) {}
+  Uint8List? getBytes(String key) => null;
+  void putBytes(String key, Uint8List bytes) {}
   void clear() {}
 }

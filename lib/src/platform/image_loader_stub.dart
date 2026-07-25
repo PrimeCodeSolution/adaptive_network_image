@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import '../adaptive_network_image_config.dart';
+import '../strategies/load_strategy.dart';
 
 class PlatformImageLoader {
   Future<Widget> load({
@@ -14,6 +15,7 @@ class PlatformImageLoader {
     List<ImageLoadStrategy>? strategies,
     ImageLoadCallback? onStrategyResolved,
     bool preventNativeInteraction = true,
+    Duration loadTimeout = kDefaultLoadTimeout,
   }) {
     throw UnimplementedError(
       'PlatformImageLoader is not implemented on this platform.',

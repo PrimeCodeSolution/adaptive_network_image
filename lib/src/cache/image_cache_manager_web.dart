@@ -4,19 +4,21 @@ import 'dart:typed_data';
 import '../adaptive_network_image_config.dart';
 
 /// Web cache manager with two cache levels:
-/// - Strategy resolution cache: remembers which strategy worked for each URL.
+/// - Strategy resolution cache: remembers which strategy worked for each key.
 /// - Bytes cache: LRU-bounded store for proxy-fetched image bytes.
 class ImageCacheManager {
   static final ImageCacheManager instance = ImageCacheManager._();
   ImageCacheManager._();
 
   static const int _maxBytesEntries = 100;
+  static const int _maxStrategyEntries = 500;
 
   /// Maximum total bytes allowed in the cache (50 MB).
   static const int maxCacheBytes = 50 * 1024 * 1024;
 
-  /// Strategy resolution cache.
-  final Map<String, ImageLoadStrategy> _strategyCache = {};
+  /// Strategy resolution cache (LRU-ish via LinkedHashMap insertion order).
+  final LinkedHashMap<String, ImageLoadStrategy> _strategyCache =
+      LinkedHashMap();
 
   /// LRU bytes cache.
   final LinkedHashMap<String, Uint8List> _bytesCache = LinkedHashMap();
@@ -24,33 +26,48 @@ class ImageCacheManager {
   /// Running total of cached bytes.
   int _totalBytes = 0;
 
-  /// Returns the cached strategy for [url], or null if unknown.
-  ImageLoadStrategy? getStrategy(String url) => _strategyCache[url];
-
-  /// Cache which strategy worked for [url].
-  void putStrategy(String url, ImageLoadStrategy strategy) {
-    _strategyCache[url] = strategy;
+  /// Returns the cached strategy for [key], or null if unknown.
+  ImageLoadStrategy? getStrategy(String key) {
+    final strategy = _strategyCache.remove(key);
+    if (strategy != null) {
+      _strategyCache[key] = strategy;
+    }
+    return strategy;
   }
 
-  /// Returns cached image bytes for [url], or null.
+  /// Cache which strategy worked for [key].
+  void putStrategy(String key, ImageLoadStrategy strategy) {
+    _strategyCache.remove(key);
+    _strategyCache[key] = strategy;
+    while (_strategyCache.length > _maxStrategyEntries) {
+      _strategyCache.remove(_strategyCache.keys.first);
+    }
+  }
+
+  /// Removes a cached strategy for [key], e.g. after a cached retry fails.
+  void removeStrategy(String key) {
+    _strategyCache.remove(key);
+  }
+
+  /// Returns cached image bytes for [key], or null.
   /// Moves the entry to the end (most recently used).
-  Uint8List? getBytes(String url) {
-    final bytes = _bytesCache.remove(url);
+  Uint8List? getBytes(String key) {
+    final bytes = _bytesCache.remove(key);
     if (bytes != null) {
-      _bytesCache[url] = bytes; // Re-insert at end (most recent).
+      _bytesCache[key] = bytes; // Re-insert at end (most recent).
     }
     return bytes;
   }
 
-  /// Cache image bytes for [url]. Evicts oldest entries if over entry or byte limit.
-  void putBytes(String url, Uint8List bytes) {
+  /// Cache image bytes for [key]. Evicts oldest entries if over entry or byte limit.
+  void putBytes(String key, Uint8List bytes) {
     // Remove existing entry first to refresh position and adjust total.
-    final existing = _bytesCache.remove(url);
+    final existing = _bytesCache.remove(key);
     if (existing != null) {
       _totalBytes -= existing.length;
     }
 
-    _bytesCache[url] = bytes;
+    _bytesCache[key] = bytes;
     _totalBytes += bytes.length;
 
     // Evict oldest entries while over entry count or byte limit.

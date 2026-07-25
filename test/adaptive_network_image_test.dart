@@ -117,10 +117,35 @@ void main() {
     });
 
     testWidgets('shows default error widget on failure', (tester) async {
-      // At minimum, verify the Icon constant that _buildError uses is correct.
-      const errorIcon = Icon(Icons.broken_image, color: Colors.grey, size: 48);
-      expect(errorIcon.icon, Icons.broken_image);
-      expect(errorIcon.size, 48);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AdaptiveNetworkImage(
+            imageUrl: 'https://example.invalid/does-not-exist.png',
+            width: 100,
+            height: 100,
+            loadTimeout: Duration(milliseconds: 50),
+          ),
+        ),
+      );
+
+      // Allow the short timeout / failed resolve to complete.
+      await tester.pump(const Duration(milliseconds: 60));
+      await tester.pump();
+
+      expect(find.byIcon(Icons.broken_image), findsOneWidget);
+    });
+
+    testWidgets('accepts loadTimeout parameter', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AdaptiveNetworkImage(
+            imageUrl: 'https://example.com/img.png',
+            loadTimeout: Duration(seconds: 1),
+          ),
+        ),
+      );
+
+      expect(find.byType(AdaptiveNetworkImage), findsOneWidget);
     });
 
     testWidgets('accepts custom errorWidget parameter', (tester) async {

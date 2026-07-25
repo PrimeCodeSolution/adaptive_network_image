@@ -12,8 +12,11 @@ import 'load_strategy.dart';
 /// view overhead, best for image lists.
 class CorsProxyStrategy extends LoadStrategy {
   final http.Client _client;
+  final bool _ownsClient;
 
-  CorsProxyStrategy({http.Client? client}) : _client = client ?? http.Client();
+  CorsProxyStrategy({http.Client? client})
+      : _client = client ?? http.Client(),
+        _ownsClient = client == null;
 
   @override
   Future<StrategyResult> load({
@@ -24,6 +27,7 @@ class CorsProxyStrategy extends LoadStrategy {
     Map<String, String>? headers,
     String? corsProxyUrl,
     bool preventNativeInteraction = true,
+    Duration timeout = kDefaultLoadTimeout,
   }) async {
     if (corsProxyUrl == null) {
       adaptiveImageLog('[CorsProxyStrategy] No proxy URL configured — skipping.');
@@ -34,13 +38,16 @@ class CorsProxyStrategy extends LoadStrategy {
 
     try {
       final proxyUrl = '$corsProxyUrl${Uri.encodeComponent(url)}';
-      final response = await _client.get(
-        Uri.parse(proxyUrl),
-        headers: headers,
-      ).timeout(const Duration(seconds: 15));
+      final response = await _client
+          .get(
+            Uri.parse(proxyUrl),
+            headers: headers,
+          )
+          .timeout(timeout);
 
       if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
-        final contentType = response.headers['content-type'] ?? '';
+        final contentType =
+            (response.headers['content-type'] ?? '').toLowerCase();
         if (!contentType.startsWith('image/')) {
           adaptiveImageLog(
             '[CorsProxyStrategy] Non-image content-type: $contentType',
@@ -67,6 +74,13 @@ class CorsProxyStrategy extends LoadStrategy {
     } catch (e) {
       adaptiveImageLog('[CorsProxyStrategy] Error: $e');
       return StrategyFailure('CORS proxy fetch failed: $e');
+    }
+  }
+
+  @override
+  void dispose() {
+    if (_ownsClient) {
+      _client.close();
     }
   }
 }
