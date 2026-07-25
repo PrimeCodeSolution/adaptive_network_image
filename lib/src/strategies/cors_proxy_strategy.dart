@@ -37,10 +37,12 @@ class CorsProxyStrategy extends LoadStrategy {
 
     try {
       final proxyUrl = '$corsProxyUrl${Uri.encodeComponent(url)}';
-      final response = await _client.get(
-        Uri.parse(proxyUrl),
-        headers: headers,
-      ).timeout(const Duration(seconds: 15));
+      final response = await _client
+          .get(
+            Uri.parse(proxyUrl),
+            headers: headers,
+          )
+          .timeout(const Duration(seconds: 15));
 
       if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
         final contentType = response.headers['content-type'] ?? '';
