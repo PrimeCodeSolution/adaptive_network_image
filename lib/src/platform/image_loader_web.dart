@@ -146,7 +146,10 @@ class PlatformImageLoader {
     BoxFit fit,
   ) {
     if (result.widget != null) {
-      return SizedBox.expand(child: result.widget!);
+      return SizedPlatformView(
+        intrinsicSize: result.intrinsicSize,
+        child: result.widget!,
+      );
     }
     if (result.imageBytes != null) {
       return Image.memory(
@@ -163,5 +166,58 @@ class PlatformImageLoader {
     for (final strategy in _strategies.values) {
       strategy.dispose();
     }
+  }
+}
+
+/// Gives a platform view a definite size under any incoming constraints.
+///
+/// [HtmlElementView] has no intrinsic size and sizes itself to
+/// `constraints.biggest`, so an unbounded axis makes it infinitely large and
+/// the render pass throws. That happens in ordinary layouts such as a
+/// [ListView] or an unconstrained [Column], where height is unbounded.
+@visibleForTesting
+class SizedPlatformView extends StatelessWidget {
+  const SizedPlatformView({
+    required this.intrinsicSize,
+    required this.child,
+    super.key,
+  });
+
+  /// The image's natural size, when the strategy could report it.
+  final Size? intrinsicSize;
+
+  final Widget child;
+
+  /// Last resort when both axes are unbounded and the natural size is unknown.
+  /// Arbitrary, but visible and finite, which beats throwing.
+  static const Size _fallbackSize = Size.square(300);
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // The parent pins both axes, so filling it is safe and preserves the
+        // behaviour of an explicitly sized AdaptiveNetworkImage.
+        if (constraints.hasBoundedWidth && constraints.hasBoundedHeight) {
+          return SizedBox.expand(child: child);
+        }
+
+        // Exactly one axis is unbounded. Derive it from the image's shape, the
+        // way Image.network would.
+        if (constraints.hasBoundedWidth || constraints.hasBoundedHeight) {
+          return AspectRatio(aspectRatio: _aspectRatio, child: child);
+        }
+
+        // Neither axis is bounded, so nothing can be derived from the parent.
+        final size = intrinsicSize ?? _fallbackSize;
+        return SizedBox(width: size.width, height: size.height, child: child);
+      },
+    );
+  }
+
+  double get _aspectRatio {
+    final size = intrinsicSize;
+    if (size == null || size.width <= 0 || size.height <= 0) return 1;
+    return size.width / size.height;
   }
 }

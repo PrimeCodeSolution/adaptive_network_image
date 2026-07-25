@@ -1,3 +1,7 @@
+## 0.1.3
+
+- Fix a layout crash on web when the image is placed under unbounded constraints, such as inside a `ListView` or an unconstrained `Column`. The platform view now derives its size from the image's natural dimensions instead of always expanding.
+
 ## 0.1.2
 
 - Fix images losing aspect ratio with directImg and iframe strategies when using fixed dimensions.

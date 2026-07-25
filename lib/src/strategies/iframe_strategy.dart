@@ -8,9 +8,24 @@ import 'package:web/web.dart' as web;
 import '../adaptive_network_image_config.dart';
 import '../css_utils.dart';
 import 'load_strategy.dart';
+import 'natural_size.dart';
 
 /// Counter for generating unique view type IDs.
 int _iframeViewIdCounter = 0;
+
+/// The natural size of the `<img>` rendered inside [iframe].
+///
+/// Returns null if the document cannot be reached, which is the safe outcome:
+/// the caller then falls back to constraint-based sizing.
+Size? _innerImageSize(web.HTMLIFrameElement iframe) {
+  try {
+    final img = iframe.contentDocument?.querySelector('img');
+    if (img == null) return null;
+    return naturalSizeOf(img as web.HTMLImageElement);
+  } catch (_) {
+    return null;
+  }
+}
 
 /// Strategy 3: Render the image inside a minimal sandboxed iframe.
 ///
@@ -80,6 +95,7 @@ class IframeStrategy extends LoadStrategy {
         );
         completer.complete(StrategySuccess(
           widget: HtmlElementView(viewType: viewType),
+          intrinsicSize: _innerImageSize(iframe),
         ));
       }
     }
