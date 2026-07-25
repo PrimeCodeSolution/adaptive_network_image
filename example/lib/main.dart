@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 import 'package:adaptive_network_image/adaptive_network_image.dart';
+import 'package:flutter/material.dart';
 
 void main() {
   runApp(const MyApp());
@@ -53,8 +53,10 @@ class _DemoPageState extends State<DemoPage> {
             // BoxFit selector
             Row(
               children: [
-                const Text('BoxFit: ',
-                    style: TextStyle(fontWeight: FontWeight.bold)),
+                const Text(
+                  'BoxFit: ',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(width: 8),
                 DropdownButton<BoxFit>(
                   value: _selectedFit,

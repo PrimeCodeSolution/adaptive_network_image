@@ -6,10 +6,11 @@ import 'package:http/http.dart' as http;
 import '../adaptive_network_image_config.dart';
 import 'load_strategy.dart';
 
-/// Strategy 2: Fetch image bytes through a CORS proxy, then display via Image.memory.
+/// Strategy 2: Fetch image bytes through a CORS proxy.
 ///
-/// Skipped if no corsProxyUrl is provided. Produces Image.memory — no platform
-/// view overhead, best for image lists.
+/// Displays fetched bytes with [Image.memory], avoiding platform-view overhead.
+///
+/// The strategy is skipped when no CORS proxy URL is provided.
 class CorsProxyStrategy extends LoadStrategy {
   final http.Client _client;
   final bool _ownsClient;
@@ -31,7 +32,8 @@ class CorsProxyStrategy extends LoadStrategy {
   }) async {
     if (corsProxyUrl == null) {
       adaptiveImageLog(
-          '[CorsProxyStrategy] No proxy URL configured — skipping.');
+        '[CorsProxyStrategy] No proxy URL configured — skipping.',
+      );
       return StrategyFailure('No CORS proxy URL configured — skipping.');
     }
 

@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:adaptive_network_image/src/cache/image_cache_manager_web.dart';
 import 'package:adaptive_network_image/src/adaptive_network_image_config.dart';
+import 'package:adaptive_network_image/src/cache/image_cache_manager_web.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

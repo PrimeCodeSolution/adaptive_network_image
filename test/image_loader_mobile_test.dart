@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:adaptive_network_image/src/platform/image_loader_mobile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
-import 'package:adaptive_network_image/src/platform/image_loader_mobile.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 1x1 transparent PNG.

@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
+import 'adaptive_network_image_config.dart';
 import 'cache/image_cache_manager.dart';
 import 'platform/image_loader.dart';
-import 'adaptive_network_image_config.dart';
 import 'strategies/load_strategy.dart';
 
 /// A widget that displays an image from an external URL, handling CORS

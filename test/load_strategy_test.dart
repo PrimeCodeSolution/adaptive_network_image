@@ -1,7 +1,7 @@
 import 'dart:typed_data';
 
-import 'package:flutter/widgets.dart';
 import 'package:adaptive_network_image/src/strategies/load_strategy.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Concrete subclass to test the default dispose() no-op.

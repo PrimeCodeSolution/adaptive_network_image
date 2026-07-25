@@ -1,12 +1,12 @@
 import 'package:flutter/widgets.dart';
 
+import '../adaptive_network_image_config.dart';
 import '../cache/cache_key.dart';
 import '../cache/image_cache_manager.dart';
 import '../strategies/cors_proxy_strategy.dart';
 import '../strategies/direct_img_strategy.dart';
 import '../strategies/iframe_strategy.dart';
 import '../strategies/load_strategy.dart';
-import '../adaptive_network_image_config.dart';
 
 class PlatformImageLoader {
   final Map<ImageLoadStrategy, LoadStrategy> _strategies = {
