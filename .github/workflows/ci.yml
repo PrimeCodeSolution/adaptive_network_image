@@ -13,6 +13,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+env:
+  # Keep in sync with release.yml so releases run the gates that CI ran.
+  # Must stay >= the Dart SDK required by flutter_lints (^3.8.0).
+  FLUTTER_VERSION: 3.44.8
+
 jobs:
   validation:
     name: Validation
@@ -27,6 +32,7 @@ jobs:
         uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
         with:
           channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
       - name: Install root dependencies

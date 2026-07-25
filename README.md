@@ -101,3 +101,51 @@ Logs are printed via `debugPrint` and are off by default.
 ## License
 
 MIT -- see [LICENSE](LICENSE) for details.
+
+## Releasing (maintainers)
+
+Publishing is driven by the `release` branch. Fast-forwarding it to a commit on `main`
+publishes that commit to pub.dev automatically -- there is no manual tagging step and no
+approval prompt, so treat a push to `release` as the production release action.
+
+### One-time setup
+
+1. On the pub.dev admin page for `adaptive_network_image`, configure a GitHub Actions
+   trusted publisher with owner `PrimeCodeSolution`, repository `adaptive_network_image`,
+   workflow `release.yml`, and environment `pub.dev`. Publication uses OIDC, so do not
+   create a `PUB_CREDENTIALS` secret.
+2. In GitHub, create an environment named `pub.dev`. Leave it without protection rules
+   for hands-off releases, or add required reviewers to turn every release into an
+   approval gate.
+3. Protect the `release` branch. Anyone who can push to it can publish.
+
+### Cutting a release
+
+1. Bump `version` in the root `pubspec.yaml`, document the changes in `CHANGELOG.md`, and
+   merge that pull request to `main`. The committed version is the release candidate; the
+   workflow never invents or modifies a version.
+2. Fast-forward `release` to the merged commit:
+
+   ```sh
+   git switch main
+   git pull --ff-only
+   git push origin main:release
+   ```
+
+That push runs the same gates as CI, publishes to pub.dev, then creates the `v<version>`
+tag and the GitHub Release from the published commit.
+
+The workflow refuses to publish when the version already exists on pub.dev, when the
+`v<version>` tag already exists, or when the commit is not contained in `main` -- so the
+release branch cannot ship code that bypassed review. Running the workflow manually from
+the Actions tab is always a validation-only dry run and can never publish.
+
+### When something fails
+
+Nothing is published unless every gate passes, and the tag and GitHub Release are created
+only after pub.dev accepts the package, so a failed run leaves no tag to clean up. Fix the
+underlying issue and push to `release` again.
+
+Because pub.dev versions are immutable, a version that was accepted cannot be republished.
+If publication succeeded but a later step failed, verify the package on pub.dev and create
+the tag and release manually rather than retrying the publish.
