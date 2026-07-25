@@ -15,6 +15,8 @@ class PlatformImageLoader {
     ImageLoadStrategy.iframe: IframeStrategy(),
   };
 
+  bool _disposed = false;
+
   Future<Widget> load({
     required String url,
     required double? width,
@@ -98,6 +100,12 @@ class PlatformImageLoader {
     // Cascade through strategies.
     final errors = <String>[];
     for (final strategyEnum in strategyOrder) {
+      // Disposing cancels the in-flight strategy, which resumes this loop.
+      // Stop here rather than starting a strategy nobody will dispose.
+      if (_disposed) {
+        throw StateError('Image load cancelled');
+      }
+
       final impl = _strategies[strategyEnum];
       if (impl == null) continue;
 
@@ -178,6 +186,7 @@ class PlatformImageLoader {
   }
 
   void dispose() {
+    _disposed = true;
     for (final strategy in _strategies.values) {
       strategy.dispose();
     }
