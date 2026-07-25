@@ -101,3 +101,25 @@ Logs are printed via `debugPrint` and are off by default.
 ## License
 
 MIT -- see [LICENSE](LICENSE) for details.
+
+## Releasing (maintainers)
+
+1. Update the version in the root `pubspec.yaml` and document user-visible changes in
+   `CHANGELOG.md`. Merge those changes before tagging.
+2. Create and push an immutable tag named exactly `v<pubspec-version>` (for example,
+   `v0.1.2`). The release workflow rejects a tag/version mismatch, a tag that does not
+   resolve to the checked-out commit, and a version already present on pub.dev. Manual
+   workflow runs are validation-only dry runs and cannot select or publish a version.
+3. In the pub.dev administration page for `adaptive_network_image`, configure a GitHub
+   Actions trusted publisher with owner `PrimeCodeSolution`, repository
+   `adaptive_network_image`, workflow `release.yml`, and environment `pub.dev`. Do not
+   create a `PUB_CREDENTIALS` secret. In GitHub, create the protected `pub.dev`
+   environment and configure required maintainer reviewers before allowing deployment.
+4. Approve the protected environment after the validation job passes. Publication uses
+   GitHub OIDC, and the GitHub Release is created only after pub.dev accepts the package.
+
+If validation or publication fails, fix the underlying issue and cut a new patch version
+and tag; do not move or reuse the failed tag. A failed publication does not create a
+GitHub Release. If pub.dev accepted the immutable version but a later release-creation
+step failed, verify the package on pub.dev and create the GitHub Release for the existing
+tag manually rather than attempting to republish it.
