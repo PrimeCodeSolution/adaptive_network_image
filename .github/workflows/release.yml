@@ -1,10 +1,10 @@
 name: Release
-run-name: ${{ github.event_name == 'push' && format('Release {0}', github.ref_name) || format('Dry-run {0}', github.ref_name) }}
+run-name: ${{ github.event_name == 'push' && format('Release from {0}', github.ref_name) || format('Dry-run {0}', github.ref_name) }}
 
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - release
   # A manual invocation always runs validation only. There is deliberately no
   # version or production-mode input.
   workflow_dispatch:
@@ -12,7 +12,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: release-${{ github.ref }}
+  group: release
   cancel-in-progress: false
 
 env:
@@ -34,7 +34,7 @@ jobs:
       - name: Checkout exact ref
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -45,51 +45,62 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
-      - name: Validate version and tag checkout
+      - name: Resolve and validate release candidate
         id: version
         shell: bash
         env:
-          IS_TAG_RELEASE: ${{ github.event_name == 'push' }}
+          GH_TOKEN: ${{ github.token }}
+          IS_RELEASE: ${{ github.event_name == 'push' }}
         run: |
           set -euo pipefail
-          version="$(dart pub deps --json 2>/dev/null | jq -r '.root.version' || true)"
-          if [[ -z "$version" || "$version" == "null" ]]; then
-            version="$(sed -nE 's/^version:[[:space:]]*([^+[:space:]]+([+][^[:space:]]+)?)$/\1/p' pubspec.yaml)"
-          fi
+
+          version="$(sed -nE 's/^version:[[:space:]]*([^[:space:]#]+).*/\1/p' pubspec.yaml | head -n 1)"
           test -n "$version" || { echo 'Could not read pubspec version' >&2; exit 1; }
-          expected_tag="v${version}"
+          tag="v${version}"
 
-          if [[ "$IS_TAG_RELEASE" == "true" ]]; then
-            [[ "$GITHUB_REF_TYPE" == "tag" && "$GITHUB_REF_NAME" == "$expected_tag" ]] || {
-              echo "Tag must be exactly ${expected_tag}; got ${GITHUB_REF_NAME}" >&2
-              exit 1
-            }
-            tag_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}^{commit}")"
-            head_commit="$(git rev-parse HEAD)"
-            event_commit="$(git rev-parse "${GITHUB_SHA}^{commit}")"
-            [[ "$head_commit" == "$event_commit" && "$head_commit" == "$tag_commit" ]] || {
-              echo 'Checkout, event SHA, and tagged commit do not match' >&2
-              exit 1
-            }
-          else
-            echo "Dry run for prospective tag ${expected_tag} (manual runs never publish)."
-          fi
-
+          # pub.dev versions are immutable, so refuse to re-publish one.
           package_json="$(mktemp)"
           curl --fail --silent --show-error \
             "https://pub.dev/api/packages/adaptive_network_image" > "$package_json"
           if jq -e --arg version "$version" \
             '.versions[] | select(.version == $version)' "$package_json" >/dev/null; then
-            echo "Version ${version} is already published on pub.dev" >&2
+            echo "Version ${version} is already published on pub.dev." >&2
+            echo 'Bump the version in pubspec.yaml before releasing again.' >&2
             exit 1
           fi
+
+          if [[ "$IS_RELEASE" == "true" ]]; then
+            # The tag is created by this workflow, so an existing one means the
+            # version was not bumped.
+            if gh api "repos/${GITHUB_REPOSITORY}/git/ref/tags/${tag}" >/dev/null 2>&1; then
+              echo "Tag ${tag} already exists." >&2
+              exit 1
+            fi
+
+            # Only publish commits that already landed on main, so the release
+            # branch cannot ship code that bypassed review and CI.
+            status="$(gh api \
+              "repos/${GITHUB_REPOSITORY}/compare/main...${GITHUB_SHA}" \
+              --jq '.status')"
+            case "$status" in
+              identical|behind) ;;
+              *)
+                echo "Commit ${GITHUB_SHA} is not contained in main (status: ${status})." >&2
+                echo 'Merge to main first, then fast-forward the release branch to it.' >&2
+                exit 1
+                ;;
+            esac
+          else
+            echo "Dry run for prospective tag ${tag} (manual runs never publish)."
+          fi
+
           echo "version=$version" >> "$GITHUB_OUTPUT"
-          echo "tag=$expected_tag" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
           {
             echo '## Release candidate'
             echo
             echo "- Package version: \`${version}\`"
-            echo "- Expected tag: \`${expected_tag}\`"
+            echo "- Tag to create: \`${tag}\`"
             echo "- Commit: \`${GITHUB_SHA}\`"
           } >> "$GITHUB_STEP_SUMMARY"
 
@@ -124,7 +135,7 @@ jobs:
         run: flutter pub publish --dry-run
 
   publish:
-    name: Confirm and publish ${{ needs.validate.outputs.tag }}
+    name: Publish ${{ needs.validate.outputs.tag }}
     if: github.event_name == 'push'
     needs: validate
     runs-on: ubuntu-latest
@@ -134,10 +145,10 @@ jobs:
       contents: write
       id-token: write
     steps:
-      - name: Checkout validated tag
+      - name: Checkout validated commit
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.sha }}
           fetch-depth: 0
           persist-credentials: false
 
@@ -148,21 +159,21 @@ jobs:
           flutter-version: ${{ env.FLUTTER_VERSION }}
           cache: true
 
-      - name: Reconfirm validated commit
-        shell: bash
-        run: |
-          set -euo pipefail
-          tag_commit="$(git rev-list -n 1 "${GITHUB_REF_NAME}^{commit}")"
-          event_commit="$(git rev-parse "${GITHUB_SHA}^{commit}")"
-          [[ "$(git rev-parse HEAD)" == "$event_commit" && "$event_commit" == "$tag_commit" ]]
-
       - name: Install dependencies
         run: flutter pub get
 
       - name: Publish to pub.dev with OIDC
         run: flutter pub publish --force
 
-      - name: Create GitHub Release
+      # Tagging follows publication because pub.dev is the irreversible step:
+      # a tag with no published version behind it would have to be deleted by
+      # hand. Creating the tag and the release together keeps them atomic.
+      - name: Tag the published commit and create the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes
+          TAG: ${{ needs.validate.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes
