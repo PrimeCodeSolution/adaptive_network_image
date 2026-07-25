@@ -10,7 +10,8 @@ permissions:
   contents: read
 
 env:
-  FLUTTER_VERSION: 3.29.2
+  # Must stay >= the Dart SDK required by flutter_lints (^3.8.0).
+  FLUTTER_VERSION: 3.44.8
 
 jobs:
   analyze-and-test:
