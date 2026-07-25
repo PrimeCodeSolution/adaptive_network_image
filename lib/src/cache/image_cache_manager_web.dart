@@ -42,7 +42,8 @@ class ImageCacheManager {
     return bytes;
   }
 
-  /// Cache image bytes for [url]. Evicts oldest entries if over entry or byte limit.
+  /// Cache image bytes for [url]. Evicts oldest entries if over entry or byte
+  /// limit.
   void putBytes(String url, Uint8List bytes) {
     // Remove existing entry first to refresh position and adjust total.
     final existing = _bytesCache.remove(url);
@@ -54,8 +55,8 @@ class ImageCacheManager {
     _totalBytes += bytes.length;
 
     // Evict oldest entries while over entry count or byte limit.
-    while (_bytesCache.length > _maxBytesEntries ||
-        _totalBytes > maxCacheBytes) {
+    while (
+        _bytesCache.length > _maxBytesEntries || _totalBytes > maxCacheBytes) {
       if (_bytesCache.isEmpty) break;
       final evictedKey = _bytesCache.keys.first;
       final evicted = _bytesCache.remove(evictedKey)!;

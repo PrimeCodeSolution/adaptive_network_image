@@ -2,34 +2,59 @@ name: CI
 
 on:
   pull_request:
-  push:
     branches:
       - main
+  push:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  analyze-and-test:
-    name: Analyze & Test
+  validation:
+    name: Validation
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
       - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
         with:
           channel: stable
           cache: true
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: flutter pub get
 
-      - name: Analyze
-        run: flutter analyze --fatal-infos
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test example
 
-      - name: Test
+      - name: Analyze package
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Run VM tests
         run: flutter test --reporter expanded
+
+      - name: Run web implementation smoke tests
+        run: flutter test --platform chrome --reporter expanded test/web_implementations_test.dart
+
+      - name: Install example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      - name: Analyze example
+        working-directory: example
+        run: flutter analyze --fatal-infos --fatal-warnings
+
+      - name: Build example for web
+        working-directory: example
+        run: flutter build web
+
+      - name: Validate package publication
+        run: flutter pub publish --dry-run
