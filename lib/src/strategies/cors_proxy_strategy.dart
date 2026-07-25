@@ -26,7 +26,9 @@ class CorsProxyStrategy extends LoadStrategy {
     bool preventNativeInteraction = true,
   }) async {
     if (corsProxyUrl == null) {
-      adaptiveImageLog('[CorsProxyStrategy] No proxy URL configured — skipping.');
+      adaptiveImageLog(
+        '[CorsProxyStrategy] No proxy URL configured — skipping.',
+      );
       return StrategyFailure('No CORS proxy URL configured — skipping.');
     }
 
