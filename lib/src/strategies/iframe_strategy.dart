@@ -59,7 +59,7 @@ class IframeStrategy extends LoadStrategy {
     final iframe =
         web.document.createElement('iframe') as web.HTMLIFrameElement;
     _iframe = iframe;
-    iframe.srcdoc = srcdoc;
+    iframe.srcdoc = srcdoc.toJS;
     iframe.style.width = '100%';
     iframe.style.height = '100%';
     iframe.style.border = 'none';
