@@ -1,3 +1,5 @@
+@TestOn('browser')
+
 import 'dart:typed_data';
 
 import 'package:adaptive_network_image/src/adaptive_network_image_config.dart';
@@ -27,7 +29,10 @@ void main() {
     final cache = ImageCacheManager.instance;
     addTearDown(cache.clear);
     cache.clear();
-    cache.putStrategy('https://example.com/image.png', ImageLoadStrategy.iframe);
+    cache.putStrategy(
+      'https://example.com/image.png',
+      ImageLoadStrategy.iframe,
+    );
     cache.putBytes(
       'https://example.com/image.png',
       Uint8List.fromList(<int>[1, 2, 3]),
