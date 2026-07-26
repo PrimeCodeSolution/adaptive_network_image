@@ -8,6 +8,7 @@ import 'package:web/web.dart' as web;
 import '../adaptive_network_image_config.dart';
 import '../css_utils.dart';
 import 'load_strategy.dart';
+import 'natural_size.dart';
 
 /// Counter for generating unique view type IDs.
 int _viewIdCounter = 0;
@@ -76,6 +77,7 @@ class DirectImgStrategy extends LoadStrategy {
         );
         completer.complete(StrategySuccess(
           widget: HtmlElementView(viewType: viewType),
+          intrinsicSize: naturalSizeOf(img),
         ));
       }
     }

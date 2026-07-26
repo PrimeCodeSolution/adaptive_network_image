@@ -8,7 +8,7 @@
 - Close owned `http.Client` instances; treat `Content-Type` checks as case-insensitive.
 - Add configurable `loadTimeout` (default 15s).
 - Await first decoded frame on non-web platforms so placeholders remain until the image is ready.
-- Expand HTML platform views only under bounded constraints to avoid width/height-only layout failures.
+- Fix a layout crash on web when the image is placed under unbounded constraints, such as inside a `ListView` or an unconstrained `Column`. The platform view now derives its size from the image's natural dimensions instead of always expanding.
 - Document headers scope, directImg CORS behavior, and Flutter's built-in `WebHtmlElementStrategy`.
 
 ## 0.1.2

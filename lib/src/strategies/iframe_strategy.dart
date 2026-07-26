@@ -9,6 +9,7 @@ import '../adaptive_network_image_config.dart';
 import '../css_utils.dart';
 import '../html_escape.dart';
 import 'load_strategy.dart';
+import 'natural_size.dart';
 
 /// Counter for generating unique view type IDs.
 int _iframeViewIdCounter = 0;
@@ -93,8 +94,10 @@ class IframeStrategy extends LoadStrategy {
         viewType,
         (int id) => iframe,
       );
+      final img = _innerImg;
       completer.complete(StrategySuccess(
         widget: HtmlElementView(viewType: viewType),
+        intrinsicSize: img == null ? null : naturalSizeOf(img),
       ));
     }
 

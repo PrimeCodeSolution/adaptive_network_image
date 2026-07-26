@@ -16,7 +16,13 @@ class StrategySuccess extends StrategyResult {
   /// Raw image bytes (used by corsProxy strategy).
   final Uint8List? imageBytes;
 
-  StrategySuccess({this.widget, this.imageBytes});
+  /// The image's natural pixel size, when the strategy could determine it.
+  ///
+  /// Platform views have no intrinsic size of their own, so this is what lets
+  /// [widget] be laid out under unbounded constraints.
+  final Size? intrinsicSize;
+
+  StrategySuccess({this.widget, this.imageBytes, this.intrinsicSize});
 }
 
 /// The strategy failed and the cascade should continue.
