@@ -20,6 +20,8 @@ The first strategy that loads successfully is used. Resolved strategies are cach
 flutter pub add adaptive_network_image
 ```
 
+Try the [live web example](https://primecodesolution.github.io/adaptive_network_image/).
+
 ```dart
 import 'package:adaptive_network_image/adaptive_network_image.dart';
 
@@ -122,7 +124,10 @@ approval prompt, so treat a push to `release` as the production release action.
 2. In GitHub, create an environment named `pub.dev`. Leave it without protection rules
    for hands-off releases, or add required reviewers to turn every release into an
    approval gate.
-3. Protect the `release` branch. Anyone who can push to it can publish.
+3. In the repository's **Settings > Pages**, set the build and deployment source to
+   **GitHub Actions**. The release workflow deploys the example to
+   `https://primecodesolution.github.io/adaptive_network_image/`.
+4. Protect the `release` branch. Anyone who can push to it can publish.
 
 ### Cutting a release
 
@@ -137,8 +142,9 @@ approval prompt, so treat a push to `release` as the production release action.
    git push origin main:release
    ```
 
-That push runs the same gates as CI, publishes to pub.dev, then creates the `v<version>`
-tag and the GitHub Release from the published commit.
+That push runs the same gates as CI, publishes to pub.dev, creates the `v<version>` tag
+and GitHub Release from the published commit, then deploys that exact commit's example
+app to GitHub Pages.
 
 The workflow refuses to publish when the version already exists on pub.dev, when the
 `v<version>` tag already exists, or when the commit is not contained in `main` -- so the
@@ -153,4 +159,6 @@ underlying issue and push to `release` again.
 
 Because pub.dev versions are immutable, a version that was accepted cannot be republished.
 If publication succeeded but a later step failed, verify the package on pub.dev and create
-the tag and release manually rather than retrying the publish.
+the tag and release manually rather than retrying the publish. If only the Pages deployment
+failed after the GitHub Release was created, use **Re-run failed jobs** on the workflow run;
+that retries the deployment without republishing the package.
