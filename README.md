@@ -2,6 +2,8 @@
 
 A Flutter package built primarily for **web**, solving CORS restrictions when loading external images. It uses a multi-strategy fallback approach that works across all browsers. On non-web platforms (Android, iOS, macOS, Windows, Linux), it uses Flutter's default network image loading — no extra setup needed.
 
+**Live demo:** [primecodesolution.github.io/adaptive_network_image](https://primecodesolution.github.io/adaptive_network_image/)
+
 > **Note:** Flutter's built-in [`Image.network`](https://api.flutter.dev/flutter/widgets/Image/Image.network.html) now supports [`WebHtmlElementStrategy`](https://api.flutter.dev/flutter/painting/WebHtmlElementStrategy.html) for a first-party HTML `<img>` CORS bypass. Prefer that for simple cases. Use this package when you need ordered fallbacks (`corsProxy`, `iframe`), strategy/bytes caching, or `preventNativeInteraction`.
 
 ## How It Works
@@ -123,6 +125,9 @@ approval prompt, so treat a push to `release` as the production release action.
    for hands-off releases, or add required reviewers to turn every release into an
    approval gate.
 3. Protect the `release` branch. Anyone who can push to it can publish.
+4. In GitHub **Settings → Pages**, set **Source** to **GitHub Actions**. After each
+   successful release, the example app is deployed to
+   [primecodesolution.github.io/adaptive_network_image](https://primecodesolution.github.io/adaptive_network_image/).
 
 ### Cutting a release
 
@@ -137,8 +142,9 @@ approval prompt, so treat a push to `release` as the production release action.
    git push origin main:release
    ```
 
-That push runs the same gates as CI, publishes to pub.dev, then creates the `v<version>`
-tag and the GitHub Release from the published commit.
+That push runs the same gates as CI, publishes to pub.dev, creates the `v<version>`
+tag and the GitHub Release from the published commit, then deploys the example app to
+GitHub Pages.
 
 The workflow refuses to publish when the version already exists on pub.dev, when the
 `v<version>` tag already exists, or when the commit is not contained in `main` -- so the
