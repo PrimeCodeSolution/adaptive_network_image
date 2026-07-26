@@ -24,7 +24,9 @@ class DirectImgStrategy extends LoadStrategy {
   web.HTMLImageElement? _img;
   JSFunction? _loadListener;
   JSFunction? _errorListener;
+  JSFunction? _contextMenuListener;
   Timer? _timer;
+  Completer<StrategyResult>? _completer;
 
   @override
   Future<StrategyResult> load({
@@ -35,8 +37,10 @@ class DirectImgStrategy extends LoadStrategy {
     Map<String, String>? headers,
     String? corsProxyUrl,
     bool preventNativeInteraction = true,
+    Duration timeout = kDefaultLoadTimeout,
   }) async {
     final completer = Completer<StrategyResult>();
+    _completer = completer;
     final viewId = _viewIdCounter++;
     final viewType = 'adaptive_network_image_img_$viewId';
 
@@ -54,6 +58,12 @@ class DirectImgStrategy extends LoadStrategy {
       img.style.pointerEvents = 'none';
       img.style.setProperty('user-select', 'none');
       img.draggable = false;
+      void onContextMenu(web.Event event) {
+        event.preventDefault();
+      }
+
+      _contextMenuListener = onContextMenu.toJS;
+      img.addEventListener('contextmenu', _contextMenuListener!);
     }
 
     void onLoad(web.Event _) {
@@ -85,7 +95,7 @@ class DirectImgStrategy extends LoadStrategy {
     img.addEventListener('error', _errorListener!);
 
     // Timeout to avoid hanging forever.
-    _timer = Timer(const Duration(seconds: 15), () {
+    _timer = Timer(timeout, () {
       if (!completer.isCompleted) {
         adaptiveImageLog('[DirectImgStrategy] Timeout loading image: $url');
         completer.complete(
@@ -97,6 +107,7 @@ class DirectImgStrategy extends LoadStrategy {
     final result = await completer.future;
     _timer?.cancel();
     _timer = null;
+    _completer = null;
     return result;
   }
 
@@ -109,12 +120,21 @@ class DirectImgStrategy extends LoadStrategy {
       if (_errorListener != null) {
         _img!.removeEventListener('error', _errorListener!);
       }
+      if (_contextMenuListener != null) {
+        _img!.removeEventListener('contextmenu', _contextMenuListener!);
+      }
       _img!.remove();
     }
     _loadListener = null;
     _errorListener = null;
+    _contextMenuListener = null;
     _img = null;
     _timer?.cancel();
     _timer = null;
+    final completer = _completer;
+    _completer = null;
+    if (completer != null && !completer.isCompleted) {
+      completer.complete(StrategyFailure('cancelled'));
+    }
   }
 }

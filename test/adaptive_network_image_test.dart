@@ -117,10 +117,39 @@ void main() {
     });
 
     testWidgets('shows default error widget on failure', (tester) async {
-      // At minimum, verify the Icon constant that _buildError uses is correct.
-      const errorIcon = Icon(Icons.broken_image, color: Colors.grey, size: 48);
-      expect(errorIcon.icon, Icons.broken_image);
-      expect(errorIcon.size, 48);
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AdaptiveNetworkImage(
+            imageUrl: 'https://example.invalid/does-not-exist.png',
+            width: 100,
+            height: 100,
+            loadTimeout: Duration(milliseconds: 50),
+          ),
+        ),
+      );
+
+      // Allow the short timeout / failed resolve to complete. On web the
+      // loader cascades through several strategies, each with its own
+      // timeout, so pump until every fallback has been exhausted.
+      for (var i = 0; i < 4; i++) {
+        await tester.pump(const Duration(milliseconds: 60));
+      }
+      await tester.pump();
+
+      expect(find.byIcon(Icons.broken_image), findsOneWidget);
+    });
+
+    testWidgets('accepts loadTimeout parameter', (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AdaptiveNetworkImage(
+            imageUrl: 'https://example.com/img.png',
+            loadTimeout: Duration(seconds: 1),
+          ),
+        ),
+      );
+
+      expect(find.byType(AdaptiveNetworkImage), findsOneWidget);
     });
 
     testWidgets('accepts custom errorWidget parameter', (tester) async {
@@ -154,6 +183,19 @@ void main() {
     testWidgets('clearCache static method does not throw', (tester) async {
       // On VM this resolves to the mobile no-op cache, so it should not throw.
       expect(() => AdaptiveNetworkImage.clearCache(), returnsNormally);
+    });
+
+    testWidgets('disposing while loading leaves no pending timers',
+        (tester) async {
+      await tester.pumpWidget(
+        const MaterialApp(
+          home: AdaptiveNetworkImage(imageUrl: 'https://example.com/img.png'),
+        ),
+      );
+
+      // Tearing the widget down mid-load must cancel the in-flight load
+      // instead of letting the web loader start the next fallback strategy.
+      await tester.pumpWidget(const MaterialApp(home: SizedBox()));
     });
 
     testWidgets('does not wrap with SizedBox when no dimensions given',

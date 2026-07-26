@@ -15,6 +15,7 @@ class _TestStrategy extends LoadStrategy {
     Map<String, String>? headers,
     String? corsProxyUrl,
     bool preventNativeInteraction = true,
+    Duration timeout = kDefaultLoadTimeout,
   }) async {
     return StrategyFailure('not implemented');
   }

@@ -1,6 +1,6 @@
 name: adaptive_network_image
 description: A Flutter widget that displays images from external URLs on web, handling CORS restrictions with a multi-strategy fallback approach.
-version: 0.1.2
+version: 0.1.3
 homepage: https://github.com/PrimeCodeSolution/adaptive_network_image
 repository: https://github.com/PrimeCodeSolution/adaptive_network_image
 topics:
@@ -10,14 +10,14 @@ topics:
   - flutter-web
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
-  flutter: '>=3.19.0'
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  web: ^1.1.0
-  http: ^1.4.0
+  web: ^1.1.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:
