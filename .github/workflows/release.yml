@@ -19,6 +19,8 @@ env:
   # Keep in sync with ci.yml so releases run the gates that CI ran.
   # Must stay >= the Dart SDK required by flutter_lints (^3.8.0).
   FLUTTER_VERSION: 3.44.8
+  # Project Pages URL: https://primecodesolution.github.io/adaptive_network_image/
+  PAGES_BASE_PATH: /adaptive_network_image/
 
 jobs:
   validate:
@@ -129,7 +131,7 @@ jobs:
 
       - name: Build example for web
         working-directory: example
-        run: flutter build web
+        run: flutter build web --base-href ${{ env.PAGES_BASE_PATH }}
 
       - name: Validate package publication
         run: flutter pub publish --dry-run
@@ -177,3 +179,50 @@ jobs:
             --target "$GITHUB_SHA" \
             --title "$TAG" \
             --generate-notes
+
+  deploy-pages:
+    name: Deploy example to GitHub Pages
+    if: github.event_name == 'push'
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout published commit
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@e938fdf56512cc96ef2f93601a5a40bde3801046 # v2.19.0
+        with:
+          channel: stable
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+
+      - name: Install example dependencies
+        working-directory: example
+        run: flutter pub get
+
+      - name: Build example for GitHub Pages
+        working-directory: example
+        run: flutter build web --base-href ${{ env.PAGES_BASE_PATH }}
+
+      - name: Set up Pages
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: example/build/web
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0

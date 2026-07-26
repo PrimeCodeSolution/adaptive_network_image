@@ -17,6 +17,8 @@ env:
   # Keep in sync with release.yml so releases run the gates that CI ran.
   # Must stay >= the Dart SDK required by flutter_lints (^3.8.0).
   FLUTTER_VERSION: 3.44.8
+  # Project Pages URL: https://primecodesolution.github.io/adaptive_network_image/
+  PAGES_BASE_PATH: /adaptive_network_image/
 
 jobs:
   validation:
@@ -60,7 +62,7 @@ jobs:
 
       - name: Build example for web
         working-directory: example
-        run: flutter build web
+        run: flutter build web --base-href ${{ env.PAGES_BASE_PATH }}
 
       - name: Validate package publication
         run: flutter pub publish --dry-run
