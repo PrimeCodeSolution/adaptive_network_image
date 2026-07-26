@@ -10,14 +10,14 @@ topics:
   - flutter-web
 
 environment:
-  sdk: '>=3.3.0 <4.0.0'
-  flutter: '>=3.19.0'
+  sdk: '>=3.4.0 <4.0.0'
+  flutter: '>=3.22.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  web: ^1.1.0
-  http: ^1.4.0
+  web: ^1.1.1
+  http: ^1.6.0
 
 dev_dependencies:
   flutter_test:

@@ -49,6 +49,15 @@ void main() {
           ImageLoadStrategy.iframe,
         );
       });
+
+      test('removeStrategy clears a cached entry', () {
+        cache.putStrategy(
+          'https://example.com/img.png',
+          ImageLoadStrategy.directImg,
+        );
+        cache.removeStrategy('https://example.com/img.png');
+        expect(cache.getStrategy('https://example.com/img.png'), isNull);
+      });
     });
 
     group('bytes cache', () {
@@ -144,24 +153,8 @@ void main() {
         expect(cache.getBytes('https://example.com/second.png'), isNotNull);
 
         // Adding another large entry should trigger eviction.
-        // After accessing first and second above, the order is:
-        // second (refreshed last by getBytes), first (refreshed before second).
-        // Actually: getBytes('first') moves first to end, then getBytes('second')
-        // moves second to end. So order is: first, second.
-        // Adding overflow will evict from the front until under limit.
         cache.putBytes('https://example.com/third.png', overflow);
 
-        // first should be evicted (it was oldest after the getBytes calls
-        // reordered things — wait, let's think again:
-        // After putBytes('first'), putBytes('second'): order = [first, second]
-        // getBytes('first') -> remove+reinsert: order = [second, first]
-        // getBytes('second') -> remove+reinsert: order = [first, second]
-        // putBytes('third'): total would be halfLimit*3 > maxBytes.
-        // Evicts from front: evicts 'first', total = halfLimit*2 still > maxBytes
-        // if halfLimit*2 > maxBytes... halfLimit = maxBytes/2, so halfLimit*2 = maxBytes.
-        // maxBytes is NOT > maxBytes, so eviction stops.
-        // Actually: first was evicted, leaving second + third = halfLimit * 2 = maxBytes.
-        // That equals the limit, not exceeds it, so no more eviction.
         expect(cache.getBytes('https://example.com/first.png'), isNull);
         expect(cache.getBytes('https://example.com/second.png'), isNotNull);
         expect(cache.getBytes('https://example.com/third.png'), isNotNull);

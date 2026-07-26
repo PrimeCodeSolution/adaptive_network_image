@@ -53,6 +53,27 @@ void main() {
       expect(success.imageBytes!.length, 4);
     });
 
+    test('accepts case-insensitive image content-type', () async {
+      final mockClient = MockClient((request) async {
+        return http.Response.bytes(
+          [0x89, 0x50, 0x4E, 0x47],
+          200,
+          headers: {'content-type': 'Image/PNG'},
+        );
+      });
+
+      final strategy = CorsProxyStrategy(client: mockClient);
+      final result = await strategy.load(
+        url: 'https://example.com/img.png',
+        width: null,
+        height: null,
+        fit: BoxFit.cover,
+        corsProxyUrl: 'https://proxy.example.com/?url=',
+      );
+
+      expect(result, isA<StrategySuccess>());
+    });
+
     test('returns StrategyFailure on non-200 status', () async {
       final mockClient = MockClient((request) async {
         return http.Response('Not Found', 404);
@@ -188,6 +209,17 @@ void main() {
         (result as StrategyFailure).reason,
         contains('status 200'),
       );
+    });
+
+    test('dispose closes owned client and is safe for injected clients',
+        () async {
+      final owned = CorsProxyStrategy();
+      expect(owned.dispose, returnsNormally);
+
+      final injected = CorsProxyStrategy(
+        client: MockClient((_) async => http.Response('', 200)),
+      );
+      expect(injected.dispose, returnsNormally);
     });
   });
 }

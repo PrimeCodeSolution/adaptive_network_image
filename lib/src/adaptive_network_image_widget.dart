@@ -1,13 +1,17 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'adaptive_network_image_config.dart';
 import 'cache/image_cache_manager.dart';
 import 'platform/image_loader.dart';
+import 'strategies/load_strategy.dart';
 
 /// A widget that displays an image from an external URL, handling CORS
 /// restrictions on Flutter Web via a multi-strategy fallback approach.
 ///
-/// On non-web platforms, this simply wraps [Image.network].
+/// On non-web platforms, this simply wraps [Image.network] semantics via a
+/// resolved [NetworkImage] so [placeholder] remains visible until the first
+/// frame is available.
 class AdaptiveNetworkImage extends StatefulWidget {
   /// The URL of the image to display.
   final String imageUrl;
@@ -37,6 +41,9 @@ class AdaptiveNetworkImage extends StatefulWidget {
   final BorderRadius? borderRadius;
 
   /// Optional HTTP headers for image requests.
+  ///
+  /// On web, headers are only applied by [ImageLoadStrategy.corsProxy].
+  /// HTML `<img>` and iframe strategies cannot send custom request headers.
   final Map<String, String>? headers;
 
   /// Optional CORS proxy URL. The image URL will be appended (encoded).
@@ -59,6 +66,9 @@ class AdaptiveNetworkImage extends StatefulWidget {
   /// Defaults to `true`.
   final bool preventNativeInteraction;
 
+  /// Timeout applied to each load strategy attempt.
+  final Duration loadTimeout;
+
   /// Clears the image strategy and bytes cache.
   static void clearCache() => ImageCacheManager.instance.clear();
 
@@ -80,6 +90,7 @@ class AdaptiveNetworkImage extends StatefulWidget {
     this.strategies,
     this.onStrategyResolved,
     this.preventNativeInteraction = true,
+    this.loadTimeout = kDefaultLoadTimeout,
   });
 
   @override
@@ -104,7 +115,12 @@ class _AdaptiveNetworkImageState extends State<AdaptiveNetworkImage> {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.imageUrl != widget.imageUrl ||
         oldWidget.corsProxyUrl != widget.corsProxyUrl ||
-        oldWidget.fit != widget.fit) {
+        oldWidget.fit != widget.fit ||
+        oldWidget.enableCache != widget.enableCache ||
+        oldWidget.preventNativeInteraction != widget.preventNativeInteraction ||
+        oldWidget.loadTimeout != widget.loadTimeout ||
+        !listEquals(oldWidget.strategies, widget.strategies) ||
+        !mapEquals(oldWidget.headers, widget.headers)) {
       _loader.dispose();
       _loader = PlatformImageLoader();
       _imageFuture = _loadImage();
@@ -123,6 +139,7 @@ class _AdaptiveNetworkImageState extends State<AdaptiveNetworkImage> {
       enableCache: widget.enableCache,
       strategies: widget.strategies,
       preventNativeInteraction: widget.preventNativeInteraction,
+      loadTimeout: widget.loadTimeout,
       onStrategyResolved: (strategy) {
         if (gen == _generation && !_disposed) {
           widget.onStrategyResolved?.call(strategy);
@@ -141,6 +158,8 @@ class _AdaptiveNetworkImageState extends State<AdaptiveNetworkImage> {
   @override
   Widget build(BuildContext context) {
     Widget child = FutureBuilder<Widget>(
+      // Keyed by generation so a reload never briefly shows a stale image.
+      key: ValueKey(_generation),
       future: _imageFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
